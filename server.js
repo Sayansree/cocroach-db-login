@@ -90,17 +90,20 @@ app.get('/',(request, response)=>{
       )
     }
   });
-  // app.post('/commit',(request,response)=> { 
-  //   if(Object.keys(request.cookies).length!=0){
-  //       commit(request.cookies.auth,toCol(new Date())).then(() =>{
-  //       response.send({pass:true});
-  //       console.log(Date(),'commit successful' ,request.ip );
-  //   }).catch(()=>{
-  //       response.send({pass:false});
-  //       console.log(Date(),'commit failed',request.ip);
-  //     })
-  //   }
-  // });
+  app.get('/commit',(request,response)=> { 
+    if(Object.keys(request.cookies).length!=0){
+        if(request.query.m>=0&&request.query.m<12)
+        commit(request.cookies.auth,`m${request.query.m}`,request.query.v).then(() =>{
+        response.send({pass:true});
+        console.log(Date(),'commit successful' ,request.ip );
+    }).catch(()=>{
+        response.send({pass:false});
+        console.log(Date(),'commit failed',request.ip);
+      })
+      else
+      response.send({pass:false});
+    }
+  });
   app.post('/logs',(request,response)=> { 
     if(Object.keys(request.cookies).length!=0){
         getLogs(request.cookies.auth).then((resp) =>{
@@ -184,7 +187,7 @@ const setup = async () => {
 //INSERT INTO users (name,email,cookiehash,cookiehash) VALUES ('lol','a@b.com','asdf','qwer');
 //root functions
 const stop        = async () =>   await client.shutdown();
-const createTable = async () =>   await client.query(`CREATE TABLE IF NOT EXISTS ${process.env.table} ( 
+const createTable = async () =>   {await client.query(`CREATE TABLE IF NOT EXISTS ${process.env.table} ( 
 id UUID NOT NULL DEFAULT gen_random_uuid(),
 countryCode VARCHAR(5) NOT NULL,
 phone BIGINT NOT NULL,
@@ -192,12 +195,25 @@ email VARCHAR(50),
 name VARCHAR(70),
 passwordHash VARCHAR(512) NOT NULL,
 cookieHash VARCHAR(512),
+m0 INT NOT NULL DEFAULT 0,
+m1 INT NOT NULL DEFAULT 0,
+m2 INT NOT NULL DEFAULT 0,
+m3 INT NOT NULL DEFAULT 0,
+m4 INT NOT NULL DEFAULT 0,
+m5 INT NOT NULL DEFAULT 0,
+m6 INT NOT NULL DEFAULT 0,
+m7 INT NOT NULL DEFAULT 0,
+m8 INT NOT NULL DEFAULT 0,
+m9 INT NOT NULL DEFAULT 0,
+m10 INT NOT NULL DEFAULT 0,
+m11 INT NOT NULL DEFAULT 0,
 PRIMARY KEY(id));`);
+}
 const dropTable   = async () =>   await client.query(`DROP TABLE IF EXISTS ${process.env.table}`);
 const reset       = async () => { await dropTable(); await createTable();}
 
 //data manupulation
-//const addColumn =   async (col) => await client.query(`ALTER TABLE ${process.env.table} ADD ${col} INT`).catch((err)=>console.log(`ignoring ${col} column already exists`));
+const addColumn =   async (col) => await client.query(`ALTER TABLE ${process.env.table} ADD ${col} INT NOT NULL DEFAULT 0`).catch((err)=>console.log(`ignoring ${col} column already exists`));
 const addUser   =   async (countrycode,phone,name,email,cookiehash)    => await client.query(`INSERT INTO ${process.env.table} 
                     (countrycode, phone, name ,email ,passwordhash ) VALUES ('${countrycode}',${phone},'${name}','${email}','${cookiehash}');`);
 const removeUser=   async (cookiehash)    => await client.query(`DELETE FROM ${process.env.table} WHERE cookiehash = '${cookiehash} IF EXISTS;`);
@@ -220,16 +236,10 @@ const checkCookies =   async (cookiehash) => {
       fail();
   })
 };
-// const commit =   async (cookiehash,col) => {
-//     let rs = await client.query(`SELECT ${col},email FROM ${process.env.table} WHERE cookiehash = '${cookiehash}' ;`);
-//     let v=rs.rows[0][col];
-//     if(v==null) v=1;
-//     else v++;
-//     await client.query(`UPDATE ${process.env.table} SET ${col} = ${v} WHERE email = '${rs.rows[0].email}'`);
-// };
+const commit =   async (cookiehash,col,val) => await client.query(`UPDATE ${process.env.table} SET ${col} = ${val} WHERE cookiehash = '${cookiehash}'`);
 const getLogs =  async (cookiehash)  =>{
     return myPromise = new Promise(async(success, fail) =>{
-        let rs = await client.query(`SELECT name,phone,email FROM ${process.env.table} WHERE cookiehash = '${cookiehash}' ;`);
+        let rs = await client.query(`SELECT name,phone,email,m0,m1,m2,m3,m4,m5,m6,m7,m8,m9,m10,m11 FROM ${process.env.table} WHERE cookiehash = '${cookiehash}' ;`);
         if(rs.rowCount==1){
             row=rs.rows[0];
             success({pass: true , data : row});
@@ -254,11 +264,12 @@ const getLogs =  async (cookiehash)  =>{
       await setup();
       //await reset();
       //await print();
-     // await reset();
-     // await print();
+      //await reset();
+      //await print();
      //const rs =await client.query(`SELECT passwordhash FROM ${process.env.table} WHERE email = 'a@b.com' ;`);
      //console.log(rs.rows[0])
-      //await addUser('+91',3378477892,'hdiusehd@hciehc.com','bobby','gcidg983287dqxbw');
+      //await addUser('+91',3378477892,'bobby','hdiusehd@hciehc.com','gcidg983287dqxbw');
+      
       // await addUser('say2an','say2an@gmail.com','cygai2gk')
       // await getLogs('cygaigk').then((a)=>console.log(a)).catch((a)=>console.log('b',a));
       // await getLogs('csaigk').then((a)=>console.log(a)).catch((a)=>console.log('b',a));

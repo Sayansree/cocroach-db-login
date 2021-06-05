@@ -70,9 +70,11 @@ window.onload =()=>{
             if (resp.exists){
                 msgsignup.style.color = "red";
                 msgsignup.innerHTML= "account already registered  with this email please login ";
+               
             }else if(resp.status){
                 msgsignup.style.color = "green";
                 msgsignup.innerHTML= "your account has been successfully registered";
+                setTimeout(()=>window.open("/","_self"),2000);
             }else{
                 msgsignup.style.color = "orange";
                 msgsignup.innerHTML= "some error occoured, try again";
